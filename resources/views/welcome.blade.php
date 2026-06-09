@@ -128,7 +128,7 @@
 </head>
 <body>
     <header class="public-header">
-        <a href="/" class="header-logo">
+        <a class="header-logo" style="cursor: default;">
             <img src="{{ asset('images/logo/logo.png') }}" alt="Auto Amegos" style="height: 35px;" onerror="this.style.display='none'">
             Auto Amegos Rent-A-Car Co<span style="color: var(--accent);">.</span>
         </a>
@@ -139,6 +139,7 @@
             <a href="#fleet">Our Fleet</a>
             <a href="#location" style="margin-right: 100px;">Our Location</a>
             @auth
+                <a href="{{ route('loans.index') }}" class="btn btn-primary" style="padding: 10px 24px; margin-left: 0; margin-right: 10px;">AARACC Loan</a>
                 <a href="{{ url('/my-bookings') }}" class="btn btn-outline" style="padding: 10px 24px; margin-left: 0;">Go to Bookings</a>
             @else
                 <a href="{{ route('login') }}" class="btn btn-outline" style="padding: 10px 24px; margin-right: 10px; margin-left: 0;">Log In</a>
@@ -151,25 +152,26 @@
         <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-    </header>
 
-    <div id="mobileMenu" class="mobile-menu">
-        <a href="#features" onclick="toggleMobileMenu()">Features</a>
-        <a href="#about" onclick="toggleMobileMenu()">About</a>
-        <a href="#how-it-works" onclick="toggleMobileMenu()">How It Works</a>
-        <a href="#fleet" onclick="toggleMobileMenu()">Our Fleet</a>
-        <a href="#location" onclick="toggleMobileMenu()">Location</a>
-        <div class="auth-buttons">
-            @auth
-                <a href="{{ url('/dashboard') }}" class="btn btn-outline btn-block" style="color: var(--accent);">Dashboard</a>
-            @else
-                <a href="{{ route('login') }}" class="btn btn-outline btn-block" style="color: var(--accent);">Log In</a>
-                @if (Route::has('register'))
-                    <a href="{{ route('register') }}" class="btn btn-primary btn-block" style="color: var(--primary);">Sign Up</a>
-                @endif
-            @endauth
+        <div id="mobileMenu" class="mobile-menu">
+            <a href="#features" onclick="toggleMobileMenu()">Features</a>
+            <a href="#about" onclick="toggleMobileMenu()">About</a>
+            <a href="#how-it-works" onclick="toggleMobileMenu()">How It Works</a>
+            <a href="#fleet" onclick="toggleMobileMenu()">Our Fleet</a>
+            <a href="#location" onclick="toggleMobileMenu()">Location</a>
+            <div class="auth-buttons">
+                @auth
+                    <a href="{{ route('loans.index') }}" class="btn btn-primary btn-block" style="color: white;">AARACC Loan</a>
+                    <a href="{{ route('dashboard') }}" class="btn btn-outline btn-block" style="color: var(--accent);">Go to Bookings</a>
+                @else
+                    <a href="{{ route('login') }}" class="btn btn-outline btn-block" style="color: var(--accent);">Log In</a>
+                    @if (Route::has('register'))
+                        <a href="{{ route('register') }}" class="btn btn-primary btn-block" style="color: var(--primary);">Sign Up</a>
+                    @endif
+                @endauth
+            </div>
         </div>
-    </div>
+    </header>
 
     <div class="hero-section">
         <div class="hero-slider" id="heroSlider">
@@ -532,7 +534,7 @@
     <footer style="width: 100%; box-sizing: border-box;">
         <div style="width: 100%; padding: 0 4%; box-sizing: border-box; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 50px; margin-bottom: 50px;">
             <div style="grid-column: span 2;">
-                <a href="/" style="font-size: 2rem; font-weight: 800; color: white; text-decoration: none; display: flex; align-items: center; gap: 10px; margin-bottom: 25px;">
+                <a style="font-size: 2rem; font-weight: 800; color: white; text-decoration: none; display: flex; align-items: center; gap: 10px; margin-bottom: 25px; cursor: default;">
                     <img src="{{ asset('images/logo.png') }}" alt="AARACC" style="height: 40px; filter: brightness(0) invert(1);" onerror="this.style.display='none'">
                     AARACC<span style="color: var(--accent);">.</span>
                 </a>

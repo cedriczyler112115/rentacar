@@ -55,4 +55,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserLegitimacyProof::class);
     }
+
+    public function capital()
+    {
+        return $this->hasOne(MemberCapital::class);
+    }
+
+    public function loans()
+    {
+        return $this->hasMany(Loan::class, 'borrower_id');
+    }
+
+    public function loanApprovals()
+    {
+        return $this->hasMany(Loan::class, 'approved_by');
+    }
 }

@@ -211,8 +211,18 @@
         .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #1e293b; font-size: 0.9rem; }
 
         @media (max-width: 900px) {
-            .nav-links { display: none; }
-            .mobile-menu-btn { display: block; }
+            .nav-links { display: none; position: absolute; top: 100%; left: 0; width: 100%; background: rgba(15, 23, 42, 0.98); padding: 20px; flex-direction: column; box-shadow: 0 10px 20px rgba(0,0,0,0.2); align-items: flex-start; }
+            .nav-links.active { display: flex !important; }
+            .mobile-menu-btn { display: block; margin-left: 10px; }
+            
+            .nav-owner-rating { margin-right: 8px; padding: 6px 10px; font-size: 0.8rem; gap: 4px; }
+            .nav-owner-rating span:nth-child(2) { display: none; }
+            
+            .login-btn-wrapper .btn-outline { padding: 6px 10px; font-size: 0.85rem; gap: 4px; }
+            .login-user-name { display: none; }
+            
+            .logo { font-size: 1.4rem; gap: 5px; }
+            .logo img { height: 30px !important; }
         }
     </style>
 </head>
@@ -278,7 +288,7 @@
     <header class="site-header">
         <div class="container nav-container">
             <div style="display: flex; align-items: center; gap: 40px;">
-                <a href="{{ url('/') }}" class="logo">
+                <a class="logo" style="cursor: default;">
                     <img src="{{ asset('images/logo/logo.png') }}" alt="AARACC Logo" style="height: 40px; width: auto;">
                     AARACC <span>.</span>
                 </a>
@@ -304,8 +314,9 @@
                     <a href="{{ route('vehicles.index') }}" class="{{ request()->routeIs('vehicles.*') ? 'active' : '' }}">All Vehicles</a>
                     <a href="{{ route('municipalities.index') }}" class="{{ request()->routeIs('municipalities.*') ? 'active' : '' }}">Price per Location</a>
                     @if(Auth::user()->is_aaracc)
-                        <a href="{{ route('admin.index') }}" class="{{ request()->routeIs('admin.*') ? 'active' : '' }}">AARACC Member Panel</a>
+                        <a href="{{ route('admin.index') }}" class="{{ request()->routeIs('admin.*') && !request()->routeIs('admin.loans.*') && !request()->routeIs('admin.loan-collections.*') && !request()->routeIs('admin.member-capitals.*') ? 'active' : '' }}">AARACC Member Panel</a>
                     @endif
+                    <a href="{{ route('loans.index') }}" class="{{ request()->routeIs('loans.*') || request()->routeIs('admin.loans.*') || request()->routeIs('admin.loan-collections.*') || request()->routeIs('admin.member-capitals.*') ? 'active' : '' }}">AARACC Loan</a>
                 </nav>
             </div>
             
@@ -343,7 +354,7 @@
                                 {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
                             </span>
                         @endif
-                        {{ Auth::user()->name }}
+                        <span class="login-user-name">{{ Auth::user()->name }}</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                     
@@ -380,7 +391,7 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col about">
-                    <a href="#" class="logo" style="margin-bottom: 15px;">AARACC <span>.</span></a>
+                    <a class="logo" style="margin-bottom: 15px; cursor: default;">AARACC <span>.</span></a>
                     <p>Auto Amegos Rent A Car Co.<br>Providing top-tier rental solutions in Butuan City. Your journey is our priority.</p>
                 </div>
                 
@@ -437,19 +448,7 @@
         const navLinks = document.querySelector('.nav-links');
         
         mobileMenuBtn.addEventListener('click', () => {
-            if (navLinks.style.display === 'flex' && navLinks.style.flexDirection === 'column') {
-                navLinks.style.display = 'none';
-            } else {
-                navLinks.style.display = 'flex';
-                navLinks.style.flexDirection = 'column';
-                navLinks.style.position = 'absolute';
-                navLinks.style.top = '100%';
-                navLinks.style.left = '0';
-                navLinks.style.width = '100%';
-                navLinks.style.background = 'rgba(15, 23, 42, 0.98)';
-                navLinks.style.padding = '20px';
-                navLinks.style.boxShadow = '0 10px 20px rgba(0,0,0,0.2)';
-            }
+            navLinks.classList.toggle('active');
         });
     </script>
     <script>

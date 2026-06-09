@@ -59,6 +59,12 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
 
     Route::get('/my-income', [MyIncomeController::class, 'index'])->name('my-income');
 
+    // User Loan Routes
+    Route::get('/loans', [\App\Http\Controllers\LoanController::class, 'index'])->name('loans.index');
+    Route::get('/loans/create', [\App\Http\Controllers\LoanController::class, 'create'])->name('loans.create');
+    Route::post('/loans', [\App\Http\Controllers\LoanController::class, 'store'])->name('loans.store');
+    Route::get('/loans/{loan}', [\App\Http\Controllers\LoanController::class, 'show'])->name('loans.show');
+
     Route::post('/rentals/{rental}/confirm', [RentalController::class, 'confirm'])->name('rentals.confirm');
     Route::post('/rentals/{rental}/cancel', [RentalController::class, 'cancel'])->name('rentals.cancel');
     Route::post('/rentals/{rental}/complete', [RentalController::class, 'complete'])->name('rentals.complete');
@@ -107,6 +113,22 @@ Route::middleware(['auth', 'verified', 'profile.complete', 'aaracc'])->prefix('a
     Route::post('/carwash-service-payments', [CarwashServicePaymentsController::class, 'store'])->name('carwash-service-payments.store');
     Route::put('/carwash-service-payments/{payment}', [CarwashServicePaymentsController::class, 'update'])->name('carwash-service-payments.update');
     Route::delete('/carwash-service-payments/{payment}', [CarwashServicePaymentsController::class, 'destroy'])->name('carwash-service-payments.destroy');
+
+    // Admin Member Capitals
+    Route::resource('member-capitals', \App\Http\Controllers\Admin\MemberCapitalController::class)->except(['show']);
+
+    // Admin Loans
+    Route::get('/loans', [\App\Http\Controllers\Admin\LoanController::class, 'index'])->name('loans.index');
+    Route::get('/loans/{loan}', [\App\Http\Controllers\Admin\LoanController::class, 'show'])->name('loans.show');
+    Route::put('/loans/{loan}', [\App\Http\Controllers\Admin\LoanController::class, 'update'])->name('loans.update');
+    Route::post('/loans/{loan}/approve', [\App\Http\Controllers\Admin\LoanController::class, 'approve'])->name('loans.approve');
+    Route::post('/loans/{loan}/reject', [\App\Http\Controllers\Admin\LoanController::class, 'reject'])->name('loans.reject');
+    Route::get('/loans/{loan}/payments/create', [\App\Http\Controllers\Admin\LoanController::class, 'createPayment'])->name('loans.payments.create');
+    Route::post('/loans/{loan}/payments', [\App\Http\Controllers\Admin\LoanController::class, 'storePayment'])->name('loans.payments.store');
+    Route::put('/loans/{loan}/payments/{payment}', [\App\Http\Controllers\Admin\LoanController::class, 'updatePayment'])->name('loans.payments.update');
+    Route::delete('/loans/{loan}/payments/{payment}', [\App\Http\Controllers\Admin\LoanController::class, 'destroyPayment'])->name('loans.payments.destroy');
+
+    Route::get('/loan-collections', [\App\Http\Controllers\Admin\LoanCollectionController::class, 'index'])->name('loan-collections.index');
 
     Route::get('/faqs', [AdminFaqController::class, 'index'])->name('faqs.index');
     Route::get('/faqs/create', [AdminFaqController::class, 'create'])->name('faqs.create');
