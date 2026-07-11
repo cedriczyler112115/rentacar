@@ -5,26 +5,190 @@
         </h2>
     </x-slot>
 
-    <div class="container" style="padding: 40px 20px; max-width: 900px; margin: 0 auto;">
+    <style>
+        .booking-page {
+            padding: 40px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .booking-shell {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        .booking-hero {
+            background: var(--primary);
+            color: white;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .booking-hero-media {
+            width: 140px;
+            height: 90px;
+            background: #334155;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .booking-hero-copy {
+            min-width: 0;
+            flex: 1 1 260px;
+        }
+        .booking-hero-price {
+            margin-left: auto;
+            text-align: right;
+        }
+        .booking-form {
+            padding: 40px;
+        }
+        .booking-spec-grid {
+            display:grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        .booking-location-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .booking-datetime-grid,
+        .booking-payment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .booking-summary-total {
+            background: #f1f5f9;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .booking-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 0;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .booking-footer-buttons {
+            display:flex;
+            justify-content:flex-end;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            .booking-page {
+                padding: 20px 12px 32px;
+            }
+            .booking-hero {
+                padding: 20px;
+                align-items: flex-start;
+            }
+            .booking-hero-media {
+                width: 100%;
+                max-width: 220px;
+                height: 140px;
+            }
+            .booking-hero-copy h3 {
+                font-size: 1.4rem !important;
+            }
+            .booking-hero-copy p {
+                font-size: 0.95rem !important;
+            }
+            .booking-hero-price {
+                margin-left: 0;
+                width: 100%;
+                text-align: left;
+            }
+            .booking-form {
+                padding: 20px 16px;
+            }
+            .booking-spec-grid,
+            .booking-location-grid,
+            .booking-datetime-grid,
+            .booking-payment-grid {
+                grid-template-columns: 1fr !important;
+                gap: 14px !important;
+            }
+            .booking-summary-total {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .booking-summary-total > div:last-child {
+                text-align: left !important;
+            }
+            .booking-footer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .booking-footer > div:first-child {
+                max-width: none !important;
+            }
+            .booking-footer-buttons {
+                width: 100%;
+                flex-direction: column-reverse;
+            }
+            .booking-footer-buttons .btn,
+            .booking-footer-buttons a,
+            .booking-footer-buttons button {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+        @media (max-width: 640px) {
+            #bookingCalendarWidget > div:first-child {
+                align-items: stretch !important;
+            }
+            #bookingCalendarWidget > div:first-child > div:last-child {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+            #bookingCalendarWidget > div:first-child > div:last-child > button {
+                flex: 1 1 120px;
+            }
+            #calMonthLabel {
+                min-width: 0 !important;
+                width: 100%;
+                text-align: left !important;
+            }
+        }
+    </style>
+
+    <div class="container booking-page">
         
-        <div style="background: white; border-radius: 12px; box-shadow: var(--shadow-md); overflow: hidden;">
+        <div class="booking-shell">
             
-            <div style="background: var(--primary); color: white; padding: 30px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div class="booking-hero">
                 @php $primaryImage = $vehicle->images->where('is_primary', true)->first() ?? $vehicle->images->first(); @endphp
-                <div onclick="openBookingImagesModal()" title="Click to view images" style="width: 140px; height: 90px; background: #334155; border-radius: 8px; overflow: hidden; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); cursor: pointer;">
+                <div onclick="openBookingImagesModal()" title="Click to view images" class="booking-hero-media">
                     @if($primaryImage)
                         <img src="{{ Storage::url($primaryImage->image_path) }}" style="width: 100%; height: 100%; object-fit: cover;">
                     @else
                         <div style="display:flex; height:100%; align-items:center; justify-content:center; color:#94a3b8;">No Image</div>
                     @endif
                 </div>
-                <div>
+                <div class="booking-hero-copy">
                     <h3 style="margin: 0; font-size: 1.8rem; font-weight: 700;">{{ $vehicle->name }}</h3>
                     <p style="margin: 5px 0 0 0; color: #cbd5e1; font-size: 1.05rem;">
                         {{ $vehicle->libBrand->name ?? 'Unknown Brand' }} &bull; {{ $vehicle->year_model ?? 'Year Model' }} &bull; {{ $vehicle->libTransmission->name ?? 'Auto' }}
                     </p>
                 </div>
-                <div style="margin-left: auto; text-align: right;">
+                <div class="booking-hero-price">
                     <div style="font-size: 0.9rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Start Rate</div>
                     <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent);">
                         ₱<span id="base_price">{{ number_format($vehicle->price_per_day, 2, '.', '') }}</span><span style="font-size: 1rem; color: #cbd5e1;">/day</span>
@@ -32,7 +196,7 @@
                 </div>
             </div>
 
-            <form id="bookingForm" action="{{ route('rentals.store', $enc_id) }}" method="POST" enctype="multipart/form-data" style="padding: 40px;">
+            <form id="bookingForm" action="{{ route('rentals.store', $enc_id) }}" method="POST" enctype="multipart/form-data" class="booking-form">
                 @csrf
                 
                 @if ($errors->any())
@@ -78,7 +242,7 @@
                 @endphp
 
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 35px;">
-                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div class="booking-spec-grid">
                         <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
                             <div style="font-size: 0.72rem; color:#64748b; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;">Type</div>
                             <div style="font-weight: 900; color: #0f172a; margin-top: 4px;">{{ $vehicle->libType->name ?? 'N/A' }}</div>
@@ -123,7 +287,7 @@
 
                 <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Travel Details</h4>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                <div class="booking-location-grid">
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #475569;">Region <span style="color: #ef4444;">*</span></label>
                         <select name="region" id="region" required style="width: 100%; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;" onchange="updateProvinces()">
@@ -147,7 +311,7 @@
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <div class="booking-datetime-grid">
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #475569;">Pickup Date & Time <span style="color: #ef4444;">*</span></label>
                         <input type="datetime-local" id="datetime_from" name="datetime_from" required style="width: 100%; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;" value="{{ old('datetime_from') }}" onchange="calculatePrice()">
@@ -231,7 +395,7 @@
                             <span style="font-weight: 600;">₱<span id="summary_extra_hours_fee">0.00</span></span>
                         </div>
                     </div>
-                    <div style="background: #f1f5f9; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+                    <div class="booking-summary-total">
                         <div>
                             <div style="font-weight: 600; color: #64748b; margin-bottom: 5px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">Estimated Service Cost</div>
                             <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent);">₱<span id="computed_price">0.00</span></div>
@@ -243,7 +407,7 @@
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <div class="booking-payment-grid">
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #475569;">Downpayment Amount Provided (Optional)</label>
                         <div style="position: relative;">
@@ -328,7 +492,7 @@
                     <textarea id="additional_message" name="additional_message" placeholder="Write a message to the owner (e.g., special requests, offers, discount notes, destination arrangement)" rows="4" style="width: 100%; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;">{{ old('additional_message') }}</textarea>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 0px; border-top: 1px solid #e2e8f0; padding-top: 30px; align-items: center; flex-wrap: wrap;">
+                <div class="booking-footer">
                     <div style="display:flex; align-items:flex-start; gap: 10px; max-width: 520px;">
                         <input id="agree_terms" name="agree_terms" type="checkbox" value="1" {{ old('agree_terms') ? 'checked' : '' }} style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent);">
                         <div style="min-width: 0;">
@@ -346,7 +510,7 @@
                             @enderror
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:flex-end; gap: 15px; flex-wrap: wrap;">
+                    <div class="booking-footer-buttons">
                         <a href="{{ route('vehicles.index') }}" class="btn" style="background: white; border: 2px solid #e2e8f0; color: #64748b; padding: 14px 35px; text-decoration: none; font-weight: 700;">Cancel Booking</a>
                         <button id="confirmBookingBtn" type="submit" class="btn btn-primary" style="padding: 14px 40px; font-size: 1.1rem; font-weight: 700;" {{ old('agree_terms') ? '' : 'disabled' }}>Confirm Booking</button>
                     </div>

@@ -20,7 +20,7 @@
             }
         </style>
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>List of your vehicles</h2>
+            <h2>My Vehicles</h2>
             <button onclick="document.getElementById('addVehicleModal').style.display='flex'" class="btn btn-primary">
                 + Add Vehicle
             </button>
