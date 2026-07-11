@@ -113,8 +113,20 @@
         .logo { font-size: 1.8rem; font-weight: 800; color: var(--text-main); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
         .logo span { color: var(--accent); }
         .nav-links { display: flex; align-items: center; gap: 30px; }
-        .nav-links a { color: var(--text-main); font-weight: 500; transition: var(--transition); opacity: 0.9; }
-        .nav-links a.active, .nav-links a:hover { color: var(--accent); opacity: 1; }
+        .nav-links a,
+        .nav-links button.nav-dropdown-trigger {
+            color: var(--text-main);
+            font-weight: 500;
+            transition: var(--transition);
+            opacity: 0.9;
+        }
+        .nav-links a.active,
+        .nav-links a:hover,
+        .nav-links button.nav-dropdown-trigger.active,
+        .nav-links button.nav-dropdown-trigger:hover {
+            color: var(--accent);
+            opacity: 1;
+        }
         .nav-owner-rating { margin-right: 14px; display:inline-flex; align-items:center; gap:8px; padding: 8px 14px; border-radius: 999px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.22); color: #10b981; font-weight: 800; font-size: 0.9rem; white-space: nowrap; }
         .nav-owner-rating .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; display:inline-block; }
         .nav-owner-rating .muted { color: rgba(226, 232, 240, 0.92); font-weight: 800; }
@@ -124,19 +136,29 @@
         main { padding-top: 100px; flex: 1; margin-bottom: 40px;}
 
         .nav-dropdown { position: relative; display: inline-flex; align-items: center; }
-        .nav-dropdown-trigger { display: inline-flex; align-items: center; gap: 8px; }
+        .nav-dropdown-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: inherit;
+            line-height: inherit;
+        }
         .nav-dropdown-trigger svg { transition: var(--transition); }
         .nav-dropdown .nav-dropdown-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
 
         .nav-dropdown-menu {
             position: absolute;
-            top: calc(100% + 10px);
+            top: 100%;
             left: 0;
             min-width: 290px;
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             box-shadow: 0 18px 35px rgba(0,0,0,0.18);
+            margin-top: 0;
             padding: 10px;
             opacity: 0;
             transform: translateY(6px);
@@ -214,6 +236,23 @@
             .nav-links { display: none; position: absolute; top: 100%; left: 0; width: 100%; background: rgba(15, 23, 42, 0.98); padding: 20px; flex-direction: column; box-shadow: 0 10px 20px rgba(0,0,0,0.2); align-items: flex-start; }
             .nav-links.active { display: flex !important; }
             .mobile-menu-btn { display: block; margin-left: 10px; }
+            .nav-dropdown { width: 100%; display: flex; flex-direction: column; align-items: stretch; }
+            .nav-dropdown-trigger { width: 100%; justify-content: space-between; }
+            .nav-dropdown-menu {
+                position: static;
+                top: auto;
+                left: auto;
+                width: 100%;
+                min-width: 0;
+                margin-top: 10px;
+                display: none;
+                opacity: 1;
+                transform: none;
+                pointer-events: auto;
+                box-shadow: none;
+                border-radius: 10px;
+            }
+            .nav-dropdown .nav-dropdown-trigger[aria-expanded="true"] + .nav-dropdown-menu { display: block; }
             
             .nav-owner-rating { margin-right: 8px; padding: 6px 10px; font-size: 0.8rem; gap: 4px; }
             .nav-owner-rating span:nth-child(2) { display: none; }
@@ -295,14 +334,14 @@
                 
                 <nav class="nav-links">
                     <div class="nav-dropdown">
-                        <a href="{{ route('dashboard') }}"
+                        <button type="button"
                            class="nav-dropdown-trigger {{ request()->routeIs('dashboard') || request()->routeIs('bookings.manage') || request()->routeIs('booking.calendar*') || request()->routeIs('my-income') ? 'active' : '' }}"
                            id="bookingsNavTrigger"
                            aria-haspopup="true"
                            aria-expanded="false">
                             Bookings
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-                        </a>
+                        </button>
                         <div class="nav-dropdown-menu" role="menu" aria-labelledby="bookingsNavTrigger">
                             <a role="menuitem" href="{{ route('dashboard') }}" class="nav-dropdown-item">My Bookings</a>
                             <a role="menuitem" href="{{ route('my-income') }}" class="nav-dropdown-item">My Income</a>
@@ -484,9 +523,27 @@
             if (!container) return;
 
             const setExpanded = (value) => trigger.setAttribute('aria-expanded', value ? 'true' : 'false');
+            const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
 
-            container.addEventListener('mouseenter', () => setExpanded(true));
-            container.addEventListener('focusin', () => setExpanded(true));
+            trigger.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (isMobile()) {
+                    setExpanded(trigger.getAttribute('aria-expanded') !== 'true');
+                    return;
+                }
+
+                setExpanded(trigger.getAttribute('aria-expanded') !== 'true');
+            });
+
+            container.addEventListener('mouseenter', () => {
+                if (!isMobile()) setExpanded(true);
+            });
+            container.addEventListener('focusin', () => {
+                if (!isMobile()) setExpanded(true);
+            });
+            container.addEventListener('mouseleave', () => {
+                if (!isMobile()) setExpanded(false);
+            });
 
             document.addEventListener('click', (e) => {
                 if (!container.contains(e.target)) {
@@ -496,6 +553,10 @@
 
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') setExpanded(false);
+            });
+
+            window.addEventListener('resize', () => {
+                if (!isMobile()) setExpanded(false);
             });
         });
     </script>

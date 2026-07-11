@@ -2,13 +2,10 @@
     <x-slot name="header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h2>{{ __('Manage Client Bookings') }}</h2>
-                <p style="color: #64748b; margin-top: 5px;">View bookings made by other users for the vehicles you own.</p>
+                <h2>{{ __('Client Bookings') }}</h2>
+                <p style="color: #64748b; margin-top: 5px;">View and manage bookings made by customers for your listed vehicles.</p>
             </div>
-            <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-                <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
-                {{ __("You're logged in!") }}
-            </div>
+
         </div>
     </x-slot>
 
@@ -41,11 +38,24 @@
         @if($bookings->count() > 0)
             <div style="display: grid; grid-template-columns: 1fr; gap: 30px;">
                 @foreach($bookings as $booking)
-                    <div class="booking-card {{ $booking->status === 'Pending' ? 'popover-pending' : '' }}">
+                    @php
+                        $primaryImage = $booking->vehicle->images->where('is_primary', true)->first() ?? $booking->vehicle->images->first();
+                        $allImages = $booking->vehicle->images->map(fn($img) => Storage::url($img->image_path))->toArray();
+                        $from = \Carbon\Carbon::parse($booking->datetime_from);
+                        $to = \Carbon\Carbon::parse($booking->datetime_to);
+                        $totalHours = $from->diffInHours($to);
+                        $days = floor($totalHours / 24);
+                        if ($days == 0 && (int)($booking->extra_hours ?? 0) === 0) $days = 1;
+                        $dayLabel = $days === 1 ? 'day' : 'days';
+                        $extraHours = (int) ($booking->extra_hours ?? 0);
+                        $hourLabel = $extraHours === 1 ? 'hr' : 'hrs';
+                        $dailyRate = (float) ($booking->vehicle->price_per_day ?? 0);
+                        $rentalAmount = $days * $dailyRate;
+                    @endphp
+                    <div class="booking-card {{ $booking->status === 'Pending' ? 'popover-pending' : '' }}" x-data="{ expanded: false }" @click="if (window.innerWidth <= 768 && !$event.target.closest('button, a, input, textarea, select, label, .doc-link')) expanded = !expanded">
                         <div class="booking-header">
                             <div class="header-main">
-                                <span class="booking-ref">Reference: #{{ str_pad($booking->id, 6, '0', STR_PAD_LEFT) }}</span>
-                                <span class="status-badge status-{{ strtolower($booking->status) }}">{{ $booking->status }}</span>
+                                <span class="booking-ref">Reference Number : {{ str_pad($booking->id, 6, '0', STR_PAD_LEFT) }}</span>
                                 @php
                                     $rawReferralValue = $booking->referral ?? null;
                                     $referralValue = $rawReferralValue === 'Internal Referral'
@@ -55,20 +65,108 @@
                                         ? 'referral-internal'
                                         : ($referralValue === 'Online Booking' ? 'referral-external' : 'referral-other');
                                 @endphp
-                                @if(!empty($referralValue))
-                                    <span class="referral-badge {{ $referralClass }}">{{ $referralValue }}</span>
-                                @endif
                             </div>
-                            <div class="booking-timestamp">Booked on {{ $booking->created_at->format('F j, Y g:i A') }}</div>
+                            <div class="booking-timestamp" style="display:flex; align-items:center; gap:10px;">
+                                <button type="button" class="toggle-booking-btn header-toggle-btn" @click="expanded = !expanded" :aria-expanded="expanded.toString()" :aria-label="expanded ? 'Collapse Details' : 'Expand Details'" :title="expanded ? 'Collapse Details' : 'Expand Details'">
+                                    <span class="header-toggle-label" x-text="expanded ? 'Collapse' : 'Expand'"></span>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" :style="expanded ? 'transform: rotate(180deg);' : ''"><path d="m6 9 6 6 6-6"/></svg>
+                                </button>
+                                <div class="mobile-tap-note">Tap anywhere to expand/collapse</div>
+                            </div>
                         </div>
 
-                        <div class="booking-content">
+                        <div class="booking-summary" x-show="!expanded">
+                            <div class="booking-summary-main">
+                                <div class="booking-summary-vehicle">
+                                    <div class="booking-thumb" @click="if (window.innerWidth > 768) { $event.stopPropagation(); openCarousel({{ json_encode($allImages) }}) }">
+                                        @if($primaryImage)
+                                            <img src="{{ Storage::url($primaryImage->image_path) }}" alt="{{ $booking->vehicle->name }}">
+                                        @else
+                                            <div class="booking-thumb-placeholder">
+                                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 10v4m4-4v4m4-4v4M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="booking-summary-text">
+                                        <h3 class="booking-summary-name">{{ $booking->vehicle->name }}</h3>
+                                        <div class="booking-summary-meta">
+                                            <span class="brand-tag">{{ $booking->vehicle->libBrand->name ?? 'N/A' }}</span>
+                                            <span class="summary-chip">{{ $days }} {{ $dayLabel }}@if($extraHours > 0) + {{ $extraHours }} {{ $hourLabel }}@endif</span>
+                                        </div>
+                                        <div class="booking-summary-subtext">
+                                            Pickup: {{ $from->format('M d, Y - h:i A') }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="summary-inline-details">
+                                    <div class="summary-inline-item summary-inline-renter">
+                                        <div class="summary-status-stack">
+                                            <span class="status-badge status-{{ strtolower($booking->status) }}">{{ $booking->status }}</span>
+                                            @if(!empty($referralValue))
+                                                <span class="referral-badge {{ $referralClass }}">{{ $referralValue }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="summary-avatar">
+                                            @if($booking->user && $booking->user->profile_photo_path)
+                                                <img src="{{ Storage::url($booking->user->profile_photo_path) }}" alt="Renter Photo">
+                                            @else
+                                                <span>{{ strtoupper(substr($booking->user->name ?? 'U', 0, 1)) }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="summary-inline-copy">
+                                            <span class="summary-contact-label">Renter</span>
+                                            <span class="summary-contact-name">{{ $booking->user->name ?? 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="summary-inline-item">
+                                        <span class="summary-contact-label">Email</span>
+                                        <span class="summary-contact-email">{{ $booking->user->email ?? 'No email available' }}</span>
+                                    </div>
+                                    <div class="summary-inline-item">
+                                        <span class="summary-contact-label">Booked on</span>
+                                        <span class="summary-destination-value">{{ $booking->created_at->format('F j, Y g:i A') }}</span>
+                                    </div>
+                                    <div class="summary-inline-item">
+                                        <span class="summary-contact-label">Destination</span>
+                                        <span class="summary-destination-value">{{ $booking->municipality }}, {{ $booking->province }}</span>
+                                    </div>
+                                    <div class="summary-inline-item">
+                                        <span class="summary-contact-label">Pickup</span>
+                                        <span class="summary-destination-value">{{ $booking->pickup_location ?? 'Main Branch, Butuan City' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="booking-summary-actions">
+                                <div class="summary-primary-actions">
+                                    @if($booking->status === 'Pending')
+                                        <button type="button" class="cancel-btn" data-rental-id="{{ $booking->id }}" aria-label="Reject Booking">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                            Reject
+                                        </button>
+                                        <button type="button" class="approve-btn" data-rental-id="{{ $booking->id }}" aria-label="Confirm">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                                            Confirm
+                                        </button>
+                                    @elseif($booking->status === 'Confirmed')
+                                        <button type="button" class="approve-btn complete-btn" data-rental-id="{{ $booking->id }}" aria-label="Travel Completed">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                                            Travel Completed
+                                        </button>
+                                    @endif
+                                </div>
+                                @if($booking->status === 'Pending')
+                                    <div class="summary-inline-note">
+                                        Contact number and other renter details will display once confirmed.
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="booking-content" x-show="expanded" style="display: none;">
                             <div class="vehicle-visual">
-                                @php
-                                    $primaryImage = $booking->vehicle->images->where('is_primary', true)->first() ?? $booking->vehicle->images->first();
-                                    $allImages = $booking->vehicle->images->map(fn($img) => Storage::url($img->image_path))->toArray();
-                                @endphp
-                                <div class="main-image-wrapper" @click="openCarousel({{ json_encode($allImages) }})">
+                                <div class="main-image-wrapper" @click="if (window.innerWidth > 768) { $event.stopPropagation(); openCarousel({{ json_encode($allImages) }}) }">
                                     @if($primaryImage)
                                         <img src="{{ Storage::url($primaryImage->image_path) }}" alt="{{ $booking->vehicle->name }}">
                                     @else
@@ -169,23 +267,6 @@
                                     <div class="specs-left">
                                         <h3 class="vehicle-name">{{ $booking->vehicle->name }}</h3>
                                         <span class="brand-tag">{{ $booking->vehicle->libBrand->name ?? 'N/A' }}</span>
-                                    </div>
-                                    <div style="display:flex; gap:8px; align-items:center;">
-                                        @if($booking->status === 'Pending')
-                                            <button type="button" class="cancel-btn" data-rental-id="{{ $booking->id }}" aria-label="Reject Booking">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                                                Reject
-                                            </button>
-                                            <button type="button" class="approve-btn" data-rental-id="{{ $booking->id }}" aria-label="Confirm">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
-                                                Confirm
-                                            </button>
-                                        @elseif($booking->status === 'Confirmed')
-                                            <button type="button" class="approve-btn complete-btn" data-rental-id="{{ $booking->id }}" aria-label="Travel Completed">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
-                                                Travel Completed
-                                            </button>
-                                        @endif
                                     </div>
                                 </div>
 
@@ -290,18 +371,9 @@
                                                 <span class="c-label">Destination Charge <br>({{ $booking->municipality }}, {{ $booking->province }})</span>
                                                 <span class="c-value">₱{{ number_format($booking->destination_price, 2) }}</span>
                                             </div>
-                                            @php
-                                                $from = \Carbon\Carbon::parse($booking->datetime_from);
-                                                $to = \Carbon\Carbon::parse($booking->datetime_to);
-                                                $totalHours = $from->diffInHours($to);
-                                                $days = floor($totalHours / 24);
-                                                if ($days == 0 && (int)($booking->extra_hours ?? 0) === 0) $days = 1;
-                                                $dailyRate = (float) ($booking->vehicle->price_per_day ?? 0);
-                                                $rentalAmount = $days * $dailyRate;
-                                            @endphp
                                             <div class="computation-item">
                                                 <span class="c-label">Number of Days</span>
-                                                <span class="c-value">{{ $days }} Day(s)</span>
+                                                <span class="c-value">{{ $days }} {{ ucfirst($dayLabel) }}</span>
                                             </div>
                                             <div class="computation-item">
                                                 <span class="c-label">Rental Amount ({{ $days }} × ₱{{ number_format($dailyRate, 2) }}/day)</span>
@@ -431,29 +503,10 @@
         .booking-card { background: white; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid #e2e8f0; overflow: hidden; transition: var(--transition); }
         .booking-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
         .booking-card { position: relative; }
-        .booking-card::after {
-            content: "Contact number and other renter details will display once confirmed.";
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            max-width: 320px;
-            background: rgba(2, 6, 23, 0.92);
-            color: white;
-            padding: 10px 12px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            opacity: 0;
-            transform: translateY(6px);
-            pointer-events: none;
-            transition: opacity 0.18s ease, transform 0.18s ease;
-            z-index: 5;
-        }
-        .booking-card.popover-pending:hover::after { opacity: 1; transform: translateY(0); }
-        .booking-header { padding: 16px 24px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
+        .booking-header { padding: 16px 24px; background: #fef3c7; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #fcd34d; }
         .header-main { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .booking-ref { font-weight: 800; color: var(--primary); letter-spacing: 0.5px; font-size: 1.05rem; }
-        .booking-timestamp { font-size: 0.85rem; color: #94a3b8; font-weight: 500; }
+        .booking-ref { display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 999px; background: #0f172a; color: white; letter-spacing: 0.5px; font-size: 0.9rem; font-weight: 900; line-height: 1; }
+        .booking-timestamp { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.85rem; color: #94a3b8; font-weight: 500; justify-content: flex-end; }
 
         .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
         .status-pending { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
@@ -465,6 +518,39 @@
         .referral-internal { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
         .referral-external { background: #ecfeff; color: #0e7490; border: 1px solid #cffafe; }
         .referral-other { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
+
+        .booking-summary { padding: 20px 24px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+        .booking-summary-main { display: flex; gap: 24px; align-items: center; flex: 1; min-width: 0; }
+        .booking-summary-vehicle { display: flex; gap: 16px; align-items: center; min-width: 0; }
+        .booking-thumb { width: 96px; height: 72px; border-radius: 12px; overflow: hidden; background: #f1f5f9; border: 1px solid #e2e8f0; flex-shrink: 0; cursor: pointer; }
+        .booking-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .booking-thumb-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; }
+        .booking-summary-text { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+        .booking-summary-name { margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--primary); line-height: 1.25; }
+        .booking-summary-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .summary-chip { display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 999px; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; font-size: 0.8rem; font-weight: 800; }
+        .booking-summary-subtext { color: #64748b; font-size: 0.85rem; font-weight: 700; }
+        .summary-avatar { width: 52px; height: 52px; border-radius: 999px; overflow: hidden; background: rgba(245, 158, 11, 0.15); border: 2px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; color: var(--accent); font-weight: 900; flex-shrink: 0; }
+        .summary-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .summary-inline-details { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; min-width: 0; }
+        .summary-inline-item { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .summary-inline-renter { flex-direction: row; align-items: center; gap: 12px; }
+        .summary-status-stack { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+        .summary-inline-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .summary-contact-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #94a3b8; letter-spacing: 0.5px; }
+        .summary-contact-name { font-size: 0.95rem; font-weight: 800; color: var(--primary); }
+        .summary-contact-email,
+        .summary-destination-value { font-size: 0.85rem; font-weight: 700; color: #475569; word-break: break-word; }
+        .booking-summary-actions { display: flex; flex-direction: column; gap: 10px; align-items: stretch; min-width: 190px; }
+        .summary-primary-actions { display: flex; gap: 10px; align-items: center; flex-wrap: nowrap; }
+        .summary-inline-note { max-width: 320px; background: #fff7d6; border: 1px solid #fcd34d; color: #92400e; padding: 10px 12px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; line-height: 1.45; }
+        .header-toggle-btn { min-height: 40px; padding: 8px 12px; border-radius: 999px; justify-content: center; background: transparent; border-color: transparent; color: var(--primary); }
+        .header-toggle-label { font-size: 0.85rem; font-weight: 800; }
+        .mobile-tap-note { display: none; width: 100%; font-size: 0.76rem; font-weight: 700; color: #92400e; text-align: right; }
+        .toggle-booking-btn { display: inline-flex; align-items: center; justify-content: space-between; gap: 10px; background: #0f172a; color: white; padding: 10px 14px; border: 1px solid #0f172a; border-radius: 10px; font-weight: 800; cursor: pointer; transition: var(--transition); }
+        .toggle-booking-btn.header-toggle-btn:hover { background: rgba(15, 23, 42, 0.08); border-color: transparent; color: var(--primary); }
+        .toggle-booking-btn:not(.header-toggle-btn):hover { background: #1e293b; border-color: #1e293b; }
+        .toggle-booking-btn svg { transition: var(--transition); flex-shrink: 0; }
 
         .booking-content { display: grid; grid-template-columns: 320px 1fr; gap: 32px; padding: 24px; }
         .vehicle-visual { display: flex; flex-direction: column; gap: 20px; }
@@ -563,6 +649,11 @@
         .doc-frame { width: 100%; height: 100%; border: 0; background: #0b1220; }
 
         @media (max-width: 1024px) {
+            .booking-summary { flex-direction: column; }
+            .booking-summary-main { flex-direction: column; align-items: flex-start; width: 100%; }
+            .booking-summary-actions { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; }
+            .summary-primary-actions { width: 100%; }
+            .summary-inline-note { max-width: none; width: 100%; }
             .booking-content { grid-template-columns: 1fr; gap: 24px; }
             .specs-grid { grid-template-columns: 1fr 1fr; }
             .details-grid { grid-template-columns: 1fr; }
@@ -570,6 +661,14 @@
 
         @media (max-width: 768px) {
             .booking-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .booking-timestamp { width: 100%; flex-wrap: wrap; }
+            .header-toggle-btn { display: none; }
+            .mobile-tap-note { display: block; text-align: left; }
+            .booking-summary { padding: 16px; }
+            .booking-summary-vehicle { align-items: flex-start; }
+            .booking-thumb { width: 84px; height: 64px; }
+            .booking-summary-actions { flex-direction: column; }
+            .summary-primary-actions { flex-wrap: wrap; }
             .specs-grid { grid-template-columns: 1fr; }
             .main-image-container { height: 300px; }
             .thumbnail { width: 60px; height: 45px; }
