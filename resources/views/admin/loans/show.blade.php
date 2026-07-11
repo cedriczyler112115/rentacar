@@ -122,6 +122,9 @@
                         <table style="width: 100%; font-size: 0.95rem; margin-bottom: 16px;">
                             <tr><td style="padding:6px 0; color:#64748b; font-weight:800; width:35%;">Name:</td><td style="padding:6px 0; font-weight:900;">{{ $loan->borrower_name }}</td></tr>
                             <tr><td style="padding:6px 0; color:#64748b; font-weight:800;">Type:</td><td style="padding:6px 0; font-weight:900; color: {{ $loan->borrower_type == 'member' ? '#2563eb' : '#0f172a' }}; text-transform: uppercase;">{{ $loan->borrower_type }}</td></tr>
+                            @if($loan->coMaker)
+                                <tr><td style="padding:6px 0; color:#64748b; font-weight:800;">Co-Maker:</td><td style="padding:6px 0; font-weight:900;">{{ $loan->coMaker->name }}</td></tr>
+                            @endif
                         </table>
 
                         @if($loan->borrower_type == 'non-member' && $loan->collaterals->count() > 0)

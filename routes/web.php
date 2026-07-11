@@ -41,23 +41,9 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
 
     Route::get('/all-cars', [VehicleController::class , 'index'])->name('vehicles.index');
 
-    Route::resource('my-cars', MyVehicleController::class)->except(['create', 'show', 'edit']);
-    Route::post('/my-cars/images/{image}/primary', [MyVehicleController::class , 'setPrimaryImage'])->name('my-cars.images.primary');
-    
     // Booking Routes
     Route::get('/book/{enc_id}', [RentalController::class, 'create'])->name('rentals.create');
     Route::post('/book/{enc_id}', [RentalController::class, 'store'])->name('rentals.store');
-
-    Route::get('/booking-calendar', [BookingCalendarController::class, 'index'])->name('booking.calendar');
-    Route::get('/booking-calendar/events', [BookingCalendarController::class, 'events'])->name('booking.calendar.events');
-    Route::post('/booking-calendar/owner-bookings', [BookingCalendarController::class, 'storeOwnerBooking'])->name('booking.calendar.owner-bookings.store');
-    Route::put('/booking-calendar/owner-bookings/{rental}', [BookingCalendarController::class, 'updateOwnerBooking'])->name('booking.calendar.owner-bookings.update');
-    Route::delete('/booking-calendar/owner-bookings/{rental}', [BookingCalendarController::class, 'destroyOwnerBooking'])->name('booking.calendar.owner-bookings.destroy');
-
-    Route::get('/client-bookings', [RentalController::class, 'manageOwnedBookings'])
-        ->name('bookings.manage');
-
-    Route::get('/my-income', [MyIncomeController::class, 'index'])->name('my-income');
 
     // User Loan Routes
     Route::get('/loans', [\App\Http\Controllers\LoanController::class, 'index'])->name('loans.index');
@@ -73,13 +59,31 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
     Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
     Route::get('/vehicles/{vehicle}/reviews', [ReviewController::class, 'vehicle'])->name('reviews.vehicle');
 
+});
+
+Route::middleware(['auth', 'profile.complete', 'aaracc'])->group(function () {
+    Route::resource('my-cars', MyVehicleController::class)->except(['create', 'show', 'edit']);
+    Route::post('/my-cars/images/{image}/primary', [MyVehicleController::class , 'setPrimaryImage'])->name('my-cars.images.primary');
+
+    Route::get('/booking-calendar', [BookingCalendarController::class, 'index'])->name('booking.calendar');
+    Route::get('/booking-calendar/events', [BookingCalendarController::class, 'events'])->name('booking.calendar.events');
+    Route::post('/booking-calendar/owner-bookings', [BookingCalendarController::class, 'storeOwnerBooking'])->name('booking.calendar.owner-bookings.store');
+    Route::put('/booking-calendar/owner-bookings/{rental}', [BookingCalendarController::class, 'updateOwnerBooking'])->name('booking.calendar.owner-bookings.update');
+    Route::delete('/booking-calendar/owner-bookings/{rental}', [BookingCalendarController::class, 'destroyOwnerBooking'])->name('booking.calendar.owner-bookings.destroy');
+
+    Route::get('/client-bookings', [RentalController::class, 'manageOwnedBookings'])
+        ->name('bookings.manage');
+
+    Route::get('/my-income', [MyIncomeController::class, 'index'])->name('my-income');
+});
+
+Route::middleware(['auth', 'verified', 'profile.complete', 'aaracc'])->group(function () {
     Route::get('/price-per-location', [LibMunicipalityController::class, 'index'])->name('municipalities.index');
     Route::get('/price-per-location/create', [LibMunicipalityController::class, 'create'])->name('municipalities.create');
     Route::post('/price-per-location', [LibMunicipalityController::class, 'store'])->name('municipalities.store');
     Route::get('/price-per-location/{libMunicipality}/edit', [LibMunicipalityController::class, 'edit'])->name('municipalities.edit');
     Route::put('/price-per-location/{libMunicipality}', [LibMunicipalityController::class, 'update'])->name('municipalities.update');
     Route::delete('/price-per-location/{libMunicipality}', [LibMunicipalityController::class, 'destroy'])->name('municipalities.destroy');
-
 });
 
 Route::middleware(['auth'])->group(function () {

@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
         $moduleTitle = 'Member Panel';
+        $isAaraccUser = (bool) (Auth::user()?->is_aaracc);
 
         if (request()->routeIs('dashboard')) $moduleTitle = 'My Bookings';
         elseif (request()->routeIs('bookings.manage')) $moduleTitle = 'Client Bookings';
@@ -329,30 +330,34 @@
             <div style="display: flex; align-items: center; gap: 40px;">
                 <a class="logo" style="cursor: default;">
                     <img src="{{ asset('images/logo/logo.png') }}" alt="AARACC Logo" style="height: 40px; width: auto;">
-                    AARACC <span>.</span>
+                    AARACC
                 </a>
                 
                 <nav class="nav-links">
-                    <div class="nav-dropdown">
-                        <button type="button"
-                           class="nav-dropdown-trigger {{ request()->routeIs('dashboard') || request()->routeIs('bookings.manage') || request()->routeIs('booking.calendar*') || request()->routeIs('my-income') ? 'active' : '' }}"
-                           id="bookingsNavTrigger"
-                           aria-haspopup="true"
-                           aria-expanded="false">
-                            Bookings
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-                        </button>
-                        <div class="nav-dropdown-menu" role="menu" aria-labelledby="bookingsNavTrigger">
-                            <a role="menuitem" href="{{ route('dashboard') }}" class="nav-dropdown-item">My Bookings</a>
-                            <a role="menuitem" href="{{ route('my-income') }}" class="nav-dropdown-item">My Income</a>
-                            <a role="menuitem" href="{{ route('booking.calendar') }}" class="nav-dropdown-item">My Booking Calendar</a>                            
-                            <a role="menuitem" href="{{ route('bookings.manage') }}" class="nav-dropdown-item">My Client Bookings</a>
+                    @if($isAaraccUser)
+                        <div class="nav-dropdown">
+                            <button type="button"
+                               class="nav-dropdown-trigger {{ request()->routeIs('dashboard') || request()->routeIs('bookings.manage') || request()->routeIs('booking.calendar*') || request()->routeIs('my-income') ? 'active' : '' }}"
+                               id="bookingsNavTrigger"
+                               aria-haspopup="true"
+                               aria-expanded="false">
+                                Bookings
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                            <div class="nav-dropdown-menu" role="menu" aria-labelledby="bookingsNavTrigger">
+                                <a role="menuitem" href="{{ route('dashboard') }}" class="nav-dropdown-item">My Bookings</a>
+                                <a role="menuitem" href="{{ route('my-income') }}" class="nav-dropdown-item">My Income</a>
+                                <a role="menuitem" href="{{ route('booking.calendar') }}" class="nav-dropdown-item">My Booking Calendar</a>
+                                <a role="menuitem" href="{{ route('bookings.manage') }}" class="nav-dropdown-item">My Client Bookings</a>
+                            </div>
                         </div>
-                    </div>
-                    <a href="{{ route('my-cars.index') }}" class="{{ request()->routeIs('my-cars.*') ? 'active' : '' }}">My Vehicles</a>
+                        <a href="{{ route('my-cars.index') }}" class="{{ request()->routeIs('my-cars.*') ? 'active' : '' }}">My Vehicles</a>
+                    @else
+                        <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">My Bookings</a>
+                    @endif
                     <a href="{{ route('vehicles.index') }}" class="{{ request()->routeIs('vehicles.*') ? 'active' : '' }}">All Vehicles</a>
-                    <a href="{{ route('municipalities.index') }}" class="{{ request()->routeIs('municipalities.*') ? 'active' : '' }}">Price per Location</a>
-                    @if(Auth::user()->is_aaracc)
+                    @if($isAaraccUser)
+                        <a href="{{ route('municipalities.index') }}" class="{{ request()->routeIs('municipalities.*') ? 'active' : '' }}">Price per Location</a>
                         <a href="{{ route('admin.index') }}" class="{{ request()->routeIs('admin.*') && !request()->routeIs('admin.loans.*') && !request()->routeIs('admin.loan-collections.*') && !request()->routeIs('admin.member-capitals.*') ? 'active' : '' }}">AARACC Member Panel</a>
                     @endif
                     <a href="{{ route('loans.index') }}" class="{{ request()->routeIs('loans.*') || request()->routeIs('admin.loans.*') || request()->routeIs('admin.loan-collections.*') || request()->routeIs('admin.member-capitals.*') ? 'active' : '' }}">AARACC Loan</a>

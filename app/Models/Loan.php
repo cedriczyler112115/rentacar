@@ -8,6 +8,7 @@ class Loan extends Model
 {
     protected $fillable = [
         'borrower_id',
+        'co_maker_id',
         'borrower_name',
         'borrower_type',
         'is_aaracc',
@@ -30,6 +31,11 @@ class Loan extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function coMaker()
+    {
+        return $this->belongsTo(User::class, 'co_maker_id');
     }
 
     public function amortizations()

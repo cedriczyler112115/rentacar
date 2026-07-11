@@ -126,20 +126,20 @@
                                             @endif
                                         </div>
                                         <div class="summary-avatar">
-                                            @if($booking->user && $booking->user->profile_photo_path)
-                                                <img src="{{ Storage::url($booking->user->profile_photo_path) }}" alt="Renter Photo">
+                                            @if($booking->vehicle && $booking->vehicle->user && $booking->vehicle->user->profile_photo_path)
+                                                <img src="{{ Storage::url($booking->vehicle->user->profile_photo_path) }}" alt="Owner Photo">
                                             @else
-                                                <span>{{ strtoupper(substr($booking->user->name ?? 'U', 0, 1)) }}</span>
+                                                <span>{{ strtoupper(substr($booking->vehicle->user->name ?? 'U', 0, 1)) }}</span>
                                             @endif
                                         </div>
                                         <div class="summary-inline-copy">
-                                            <span class="summary-contact-label">Renter</span>
-                                            <span class="summary-contact-name">{{ $booking->user->name ?? 'N/A' }}</span>
+                                            <span class="summary-contact-label">Rented To</span>
+                                            <span class="summary-contact-name">{{ $booking->vehicle->user->name ?? 'N/A' }}</span>
                                         </div>
                                     </div>
                                     <div class="summary-inline-item">
                                         <span class="summary-contact-label">Email</span>
-                                        <span class="summary-contact-email">{{ $booking->user->email ?? 'No email available' }}</span>
+                                        <span class="summary-contact-email">{{ $booking->vehicle->user->email ?? 'No email available' }}</span>
                                     </div>
                                     <div class="summary-inline-item">
                                         <span class="summary-contact-label">Booked on</span>

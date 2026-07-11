@@ -130,7 +130,7 @@
     <header class="public-header">
         <a class="header-logo" style="cursor: default;">
             <img src="{{ asset('images/logo/logo.png') }}" alt="Auto Amegos" style="height: 35px;" onerror="this.style.display='none'">
-            Auto Amegos Rent-A-Car Co<span style="color: var(--accent);">.</span>
+            Auto Amegos Rent-A-Car Co
         </a>
         <div class="header-links">
             <a href="#features">Features</a>

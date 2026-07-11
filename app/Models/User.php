@@ -70,4 +70,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Loan::class, 'approved_by');
     }
+
+    public function coMakerLoans()
+    {
+        return $this->hasMany(Loan::class, 'co_maker_id');
+    }
 }

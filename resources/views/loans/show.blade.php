@@ -38,6 +38,12 @@
                         <h3 style="color: #64748b; font-size: 0.85rem; font-weight: 800; text-transform: uppercase;">Due Date</h3>
                         <p style="font-size: 1.2rem; font-weight: 900; color: #0f172a; margin-top: 4px;">{{ $loan->due_date ? \Carbon\Carbon::parse($loan->due_date)->format('M d, Y') : 'N/A' }}</p>
                     </div>
+                    @if($loan->coMaker)
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+                            <h3 style="color: #64748b; font-size: 0.85rem; font-weight: 800; text-transform: uppercase;">Co-Maker</h3>
+                            <p style="font-size: 1.2rem; font-weight: 900; color: #0f172a; margin-top: 4px;">{{ $loan->coMaker->name }}</p>
+                        </div>
+                    @endif
                     @php
                         $totalScheduled = $loan->amortizations->sum('total_payment');
                         $totalPaid = $loan->payments->sum('amount_paid');

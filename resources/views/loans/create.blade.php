@@ -31,7 +31,7 @@
                         @if($isMember)
                             <p style="font-size: 0.85rem; font-weight: 800; color: #64748b; margin-top: 4px;">As a member, your interest rate is 5% diminishing. Maximum loan amount is ₱{{ number_format($maxLoanAmount, 2) }}.</p>
                         @else
-                            <p style="font-size: 0.85rem; font-weight: 800; color: #64748b; margin-top: 4px;">As a non-member, your interest rate is 7% diminishing. Collateral is required (minimum 150% value of loan amount).</p>
+                            <p style="font-size: 0.85rem; font-weight: 800; color: #64748b; margin-top: 4px;">As a non-member, your interest rate is 7% diminishing. Collateral is required (minimum 150% value of loan amount), and your selected co-maker must still have remaining 80% allowable member capacity.</p>
                         @endif
                     </div>
 
@@ -48,6 +48,38 @@
                     </div>
 
                     @if(!$isMember)
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="font-size: 0.95rem; font-weight: 900; color: #0f172a;">Co-Maker</h3>
+                            <p style="font-size: 0.85rem; font-weight: 800; color: #64748b; margin-top: 4px;">Choose an AARACC member whose remaining allowable amount can cover your requested loan.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                            <div>
+                                <label for="co_maker_id" style="display:block; font-size: 0.9rem; font-weight: 800; color: #475569; margin-bottom: 6px;">Co-Maker</label>
+                                <select name="co_maker_id" id="co_maker_id" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; background: #f8fafc; color: #0f172a;" required>
+                                    <option value="">Select eligible co-maker...</option>
+                                    @forelse($coMakers as $coMaker)
+                                        <option
+                                            value="{{ $coMaker->id }}"
+                                            data-remaining="{{ number_format((float) $coMaker->co_maker_remaining_amount, 2, '.', '') }}"
+                                            {{ (string) old('co_maker_id') === (string) $coMaker->id ? 'selected' : '' }}
+                                        >
+                                            {{ $coMaker->name }} - Remaining ₱{{ number_format((float) $coMaker->co_maker_remaining_amount, 2) }}
+                                        </option>
+                                    @empty
+                                        <option value="" disabled>No eligible co-maker available</option>
+                                    @endforelse
+                                </select>
+                                <p id="coMakerLimitHint" style="font-size: 0.8rem; font-weight: 800; color: #64748b; margin-top: 6px;">
+                                    @if(old('co_maker_id'))
+                                        Selected co-maker remaining allowable amount will appear here.
+                                    @else
+                                        Select a co-maker to see the remaining allowable amount.
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
                         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
                         <div style="margin-bottom: 20px;">
                             <h3 style="font-size: 0.95rem; font-weight: 900; color: #0f172a;">Collateral Details</h3>
@@ -94,4 +126,31 @@
             </div>
         </div>
     </div>
+
+    @if(!$isMember)
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const coMakerSelect = document.getElementById('co_maker_id');
+                const loanAmountInput = document.getElementById('loan_amount');
+                const hint = document.getElementById('coMakerLimitHint');
+                if (!coMakerSelect || !loanAmountInput || !hint) return;
+
+                const syncCoMakerLimit = () => {
+                    const selected = coMakerSelect.options[coMakerSelect.selectedIndex];
+                    const remaining = selected ? Number(selected.getAttribute('data-remaining') || 0) : 0;
+
+                    if (remaining > 0) {
+                        loanAmountInput.max = String(remaining);
+                        hint.textContent = 'Selected co-maker remaining allowable amount: ₱' + remaining.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    } else {
+                        loanAmountInput.removeAttribute('max');
+                        hint.textContent = 'Select a co-maker to see the remaining allowable amount.';
+                    }
+                };
+
+                coMakerSelect.addEventListener('change', syncCoMakerLimit);
+                syncCoMakerLimit();
+            });
+        </script>
+    @endif
 </x-member-layout>
