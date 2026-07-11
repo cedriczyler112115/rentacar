@@ -157,7 +157,7 @@
                             </div>
                             
                             <div style="display: flex; gap: 10px;">
-                                <button onclick='editVehicle({{ $vehicle->id }}, "{{ addslashes($vehicle->name) }}", "{{ addslashes($vehicle->license_plate ?? '') }}", {{ $vehicle->lib_brand_id ?? "null" }}, {{ $vehicle->lib_type_id ?? "null" }}, {{ $vehicle->price_per_day }}, {{ $vehicle->lib_availability_status_id ?? "null" }}, {{ $vehicle->lib_transmission_id ?? "null" }}, {{ $vehicle->lib_fuel_type_id ?? "null" }}, {{ $vehicle->seating_capacity }}, "{{ addslashes($vehicle->color ?? '') }}", "{{ addslashes($vehicle->year_model ?? '') }}", @json($vehicle->booked_dates ?? []), @json($vehicle->images->map(fn($img) => ["id" => $img->id, "url" => Storage::url($img->image_path), "is_primary" => (bool)$img->is_primary])))' class="btn btn-outline" style="flex: 1; padding: 8px;">Edit</button>
+                                <button onclick='editVehicle({{ $vehicle->id }}, "{{ addslashes($vehicle->name) }}", "{{ addslashes($vehicle->license_plate ?? '') }}", {{ $vehicle->lib_brand_id ?? "null" }}, {{ $vehicle->lib_type_id ?? "null" }}, {{ $vehicle->price_per_day }}, {{ $vehicle->lib_availability_status_id ?? "null" }}, {{ $vehicle->lib_transmission_id ?? "null" }}, {{ $vehicle->lib_fuel_type_id ?? "null" }}, {{ $vehicle->seating_capacity }}, "{{ addslashes($vehicle->color ?? '') }}", "{{ addslashes($vehicle->year_model ?? '') }}", @json($vehicle->images->map(fn($img) => ["id" => $img->id, "url" => Storage::url($img->image_path), "is_primary" => (bool)$img->is_primary])))' class="btn btn-outline" style="flex: 1; padding: 8px;">Edit</button>
                                 <form action="{{ route('my-cars.destroy', $vehicle->id) }}" method="POST" class="confirm-delete" style="flex: 1; display:flex;">
                                     @csrf
                                     @method('DELETE')
@@ -462,38 +462,6 @@ By checking the box, you confirm that you have read and agree to these Terms & P
                             </label>
                         @endforeach
                     </div>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500;">Booked Dates</label>
-                    <input type="hidden" name="booked_dates" id="edit_booked_dates" value="[]">
-                    <div style="display:flex; flex-direction:column; gap:12px;">
-                        <div style="width: 100%;">
-                            <div style="font-size: 0.85rem; color:#64748b; font-weight:600; margin-bottom:6px;">Single Date</div>
-                            <div style="display:flex; gap:10px; align-items:center; width: 100%;">
-                                <input type="date" id="edit_single_date" style="flex: 1; width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                                <button type="button" class="btn btn-outline" id="edit_add_single_btn" style="padding: 10px 14px; display:inline-flex; align-items:center; gap:8px; white-space: nowrap;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                                    Add Date
-                                </button>
-                            </div>
-                        </div>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
-                            <div style="flex: 1; min-width: 180px;">
-                                <div style="font-size: 0.85rem; color:#64748b; font-weight:600; margin-bottom:6px;">Range Start</div>
-                                <input type="date" id="edit_range_start" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <div style="flex: 1; min-width: 180px;">
-                                <div style="font-size: 0.85rem; color:#64748b; font-weight:600; margin-bottom:6px;">Range End</div>
-                                <input type="date" id="edit_range_end" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <button type="button" class="btn btn-outline" id="edit_add_range_btn" style="padding: 10px 14px; display:inline-flex; align-items:center; gap:8px; white-space: nowrap;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><path d="M8 12h8"/></svg>
-                                Add Range
-                            </button>
-                        </div>
-                    </div>
-                    <div id="edit_booked_dates_list" style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;"></div>
                 </div>
 
                 <input type="hidden" name="delete_image_ids" id="edit_delete_image_ids" value="[]">
@@ -823,33 +791,6 @@ By checking the box, you confirm that you have read and agree to these Terms & P
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const today = localTodayStr();
-            ['edit_single_date', 'edit_range_start', 'edit_range_end'].forEach((id) => {
-                const el = document.getElementById(id);
-                if (el) el.min = today;
-            });
-
-            const editSingleBtn = document.getElementById('edit_add_single_btn');
-            const editRangeBtn = document.getElementById('edit_add_range_btn');
-            if (editSingleBtn) {
-                editSingleBtn.addEventListener('click', () => {
-                    const el = document.getElementById('edit_single_date');
-                    addSingleDate('edit', el ? el.value : '');
-                    if (el) el.value = '';
-                });
-            }
-            if (editRangeBtn) {
-                editRangeBtn.addEventListener('click', () => {
-                    const startEl = document.getElementById('edit_range_start');
-                    const endEl = document.getElementById('edit_range_end');
-                    addDateRange('edit', startEl ? startEl.value : '', endEl ? endEl.value : '');
-                    if (startEl) startEl.value = '';
-                    if (endEl) endEl.value = '';
-                });
-            }
-
-            setBookedDates('edit', []);
-
             const addTerms = document.getElementById('add_agree_vehicle_terms');
             const addSubmit = document.getElementById('addVehicleSubmitBtn');
             if (addTerms && addSubmit) {
@@ -877,13 +818,12 @@ By checking the box, you confirm that you have read and agree to these Terms & P
             document.body.style.overflow = 'auto';
         }
 
-        function editVehicle(id, name, license_plate, brand_id, type_id, price, status_id, trans_id, fuel_id, seats, color, year_model, bookedDates, images) {
+        function editVehicle(id, name, license_plate, brand_id, type_id, price, status_id, trans_id, fuel_id, seats, color, year_model, images) {
             document.getElementById('editForm').action = '/my-cars/' + id;
             document.getElementById('edit_name').value = name;
             document.getElementById('edit_license_plate').value = license_plate || '';
             document.getElementById('edit_color').value = color || '';
             document.getElementById('edit_year').value = year_model || '';
-            setBookedDates('edit', bookedDates || []);
             setEditDeleteImageIds([]);
             
             if(brand_id) document.getElementById('edit_brand').value = brand_id;

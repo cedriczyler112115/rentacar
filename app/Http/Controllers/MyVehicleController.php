@@ -157,7 +157,11 @@ class MyVehicleController extends Controller
         ]);
 
         $validated['license_plate'] = strtoupper(preg_replace('/\s+/', '', $validated['license_plate']));
-        $validated['booked_dates'] = $this->parseBookedDates($request->input('booked_dates'));
+        if ($request->has('booked_dates')) {
+            $validated['booked_dates'] = $this->parseBookedDates($request->input('booked_dates'));
+        } else {
+            unset($validated['booked_dates']);
+        }
         $my_car->update($validated);
 
         $deleteIds = $this->parseDeleteImageIds($request->input('delete_image_ids'));
