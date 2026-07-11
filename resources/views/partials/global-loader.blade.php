@@ -1,8 +1,13 @@
 <div id="aarGlobalLoader" style="display:none; position:fixed; inset:0; z-index:300000; align-items:center; justify-content:center; background: rgba(2,6,23,0.75); backdrop-filter: blur(2px);">
-    <div style="width: min(520px, calc(100vw - 40px)); background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); display:flex; gap: 14px; align-items:center;">
-        <div style="width: 44px; height: 44px; border-radius: 999px; border: 4px solid rgba(245,158,11,0.25); border-top-color: var(--accent, #f59e0b); animation: aarSpin 0.9s linear infinite;"></div>
-        <div style="min-width:0;">
-            <div id="aarGlobalLoaderTitle" style="font-weight: 900; color:#0f172a;">Please wait while we load your content...</div>
+    <div style="width: min(420px, calc(100vw - 40px)); background: white; border: 1px solid #e2e8f0; border-radius: 18px; padding: 26px 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); display:flex; flex-direction:column; align-items:center; text-align:center;">
+        <div style="position: relative; width: 118px; height: 118px; display:flex; align-items:center; justify-content:center;">
+            <div style="position:absolute; inset:0; border-radius:999px; border: 5px solid rgba(245,158,11,0.18); border-top-color: var(--accent, #f59e0b); border-right-color: rgba(15,23,42,0.8); animation: aarSpin 1s linear infinite;"></div>
+            <div style="position:relative; z-index:1; width: 84px; height: 84px; border-radius:999px; background: linear-gradient(180deg, #ffffff 0%, #fff7ed 100%); border: 1px solid #fde68a; box-shadow: 0 10px 24px rgba(15,23,42,0.12); display:flex; align-items:center; justify-content:center; padding: 14px;">
+                <img src="{{ asset('images/logo/logo.png') }}" alt="AARACC Logo" style="max-width:100%; max-height:100%; width:auto; height:auto;" onerror="this.style.display='none'">
+            </div>
+        </div>
+        <div style="min-width:0; width:100%; margin-top: 14px;">
+            <div id="aarGlobalLoaderTitle" style="font-weight: 900; color:#0f172a; font-size: 1rem;">Please wait while we load your content...</div>
             <div id="aarGlobalLoaderSub" style="margin-top: 6px; color:#64748b; font-weight: 800; font-size: 0.95rem;">Please wait.</div>
         </div>
     </div>
