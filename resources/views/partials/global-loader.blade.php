@@ -2,7 +2,7 @@
     <div style="width: min(420px, calc(100vw - 40px)); background: white; border: 1px solid #e2e8f0; border-radius: 18px; padding: 26px 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); display:flex; flex-direction:column; align-items:center; text-align:center;">
         <div style="position: relative; width: 118px; height: 118px; display:flex; align-items:center; justify-content:center;">
             <div style="position:absolute; inset:0; border-radius:999px; border: 5px solid rgba(245,158,11,0.18); border-top-color: var(--accent, #f59e0b); border-right-color: rgba(15,23,42,0.8); animation: aarSpin 1s linear infinite;"></div>
-            <div style="position:relative; z-index:1; width: 84px; height: 84px; border-radius:999px; background: linear-gradient(180deg, #ffffff 0%, #fff7ed 100%); border: 1px solid #fde68a; box-shadow: 0 10px 24px rgba(15,23,42,0.12); display:flex; align-items:center; justify-content:center; padding: 14px;">
+            <div style="position:relative; z-index:1; width: 100px; height: 100px; border-radius:999px; background: linear-gradient(180deg, #ffffff 0%, #fff7ed 100%); border: 1px solid #fde68a; box-shadow: 0 10px 24px rgba(15,23,42,0.12); display:flex; align-items:center; justify-content:center; padding: 14px;">
                 <img src="{{ asset('images/logo/logo.png') }}" alt="AARACC Logo" style="max-width:100%; max-height:100%; width:auto; height:auto;" onerror="this.style.display='none'">
             </div>
         </div>

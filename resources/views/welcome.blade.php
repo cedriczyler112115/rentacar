@@ -300,7 +300,7 @@
                     Filter Vehicles
                 </h3>
                 
-                <form id="fleetFilterForm" action="{{ url('/') }}#fleet" method="GET">
+                <form id="fleetFilterForm" action="{{ url('/') }}" method="GET" data-no-loader>
                     
                     <div style="margin-bottom: 20px;">
                         <label class="filter-label">Search Keyword</label>
@@ -381,7 +381,7 @@
 
                     <div style="display: flex; gap: 15px; flex-direction: column;">
                         <button type="submit" class="btn btn-primary btn-block" style="padding: 14px; font-size: 1.05rem;">Apply Filters</button>
-                        <a href="{{ url('/') }}#fleet" class="btn btn-outline btn-block" style="padding: 14px; font-size: 1.05rem;">Clear All</a>
+                        <a href="{{ url('/') }}#fleet" id="fleetClearFilters" class="btn btn-outline btn-block" style="padding: 14px; font-size: 1.05rem;" data-no-loader>Clear All</a>
                     </div>
                 </form>
             </aside>
@@ -390,7 +390,7 @@
             <div class="vehicle-main">
                 
                 <div id="fleetVehiclesContainer">
-                    @include('partials.public_vehicle_grid', ['vehicles' => $vehicles, 'ownerRatings' => $ownerRatings ?? []])
+                    @include('partials.public_vehicle_grid', ['vehicles' => $vehicles])
                 </div>
                 
             </div>
@@ -713,6 +713,9 @@
             if (!window.jQuery) return;
             const $container = $('#fleetVehiclesContainer');
             const $form = $('#fleetFilterForm');
+            const $clear = $('#fleetClearFilters');
+            let pendingRequest = null;
+            let activeRequestId = 0;
 
             function setLoading(isLoading) {
                 if (isLoading) {
@@ -730,41 +733,80 @@
                 return (url || '').split('#')[0];
             }
 
+            function resetGlobalLoader() {
+                if (window.AARLoading && typeof window.AARLoading.reset === 'function') {
+                    window.AARLoading.reset();
+                }
+            }
+
+            function prepareFleetLinks() {
+                $container.find('.fleet-pagination a').attr('data-no-loader', 'true');
+            }
+
+            function stopPendingRequest() {
+                if (pendingRequest && typeof pendingRequest.abort === 'function') {
+                    pendingRequest.abort();
+                }
+                pendingRequest = null;
+            }
+
             function loadVehicles(url, pushUrl) {
                 const cleanUrl = normalizeUrl(url);
                 const ajaxUrl = cleanUrl + (cleanUrl.includes('?') ? '&' : '?') + 'ajax=1';
+                const requestId = ++activeRequestId;
+                stopPendingRequest();
+                resetGlobalLoader();
                 setLoading(true);
-                $.get(ajaxUrl)
+                pendingRequest = $.get(ajaxUrl)
                     .done(function (html) {
+                        if (requestId !== activeRequestId) return;
                         $container.html(html);
+                        prepareFleetLinks();
                         if (pushUrl) {
                             window.history.replaceState({}, '', normalizeUrl(pushUrl) + '#fleet');
                         }
                         const fleetEl = document.getElementById('fleet');
                         if (fleetEl) fleetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     })
+                    .fail(function (_xhr, status) {
+                        if (status === 'abort') return;
+                        $container.html('<div style="padding: 18px; border-radius: 12px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-weight: 800;">We could not load the available vehicles right now. Please try again.</div>');
+                    })
                     .always(function () {
-                        setLoading(false);
+                        if (requestId === activeRequestId) {
+                            setLoading(false);
+                            resetGlobalLoader();
+                            pendingRequest = null;
+                        }
                     });
             }
 
             $form.on('submit', function (e) {
                 e.preventDefault();
                 const baseUrl = normalizeUrl($form.attr('action'));
-                const qs = $form.serialize();
+                const qs = $form.serializeArray()
+                    .filter(function (item) { return item.name !== 'page' && String(item.value || '').trim() !== ''; })
+                    .map(function (item) { return encodeURIComponent(item.name) + '=' + encodeURIComponent(item.value); })
+                    .join('&');
                 const targetUrl = qs ? (baseUrl + '?' + qs) : baseUrl;
                 loadVehicles(targetUrl, targetUrl);
             });
 
-            $container.on('click', 'a', function (e) {
+            $container.on('click', '.fleet-pagination a', function (e) {
                 const href = $(this).attr('href');
                 if (!href) return;
-                if (href.startsWith('#')) return;
-                if (href.includes('/login') || href.includes('/register')) return;
-                if (href.includes('/book-now') || href.includes('/book/')) return;
                 e.preventDefault();
                 loadVehicles(href, href);
             });
+
+            $clear.on('click', function (e) {
+                e.preventDefault();
+                $form[0].reset();
+                const baseUrl = normalizeUrl($form.attr('action'));
+                loadVehicles(baseUrl, baseUrl);
+            });
+
+            prepareFleetLinks();
 
             function esc(s) {
                 return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

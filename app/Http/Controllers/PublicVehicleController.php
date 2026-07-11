@@ -9,7 +9,6 @@ use App\Models\LibTransmission;
 use App\Models\LibFuelType;
 use App\Models\LibAvailabilityStatus;
 use App\Models\Faq;
-use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -18,7 +17,34 @@ class PublicVehicleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Vehicle::with(['images', 'user', 'libBrand', 'libType', 'libTransmission', 'libFuelType', 'libAvailabilityStatus']);
+        $query = Vehicle::query()
+            ->select([
+                'id',
+                'name',
+                'lib_brand_id',
+                'price_per_day',
+                'color',
+                'seating_capacity',
+                'lib_type_id',
+                'lib_availability_status_id',
+                'booked_dates',
+                'lib_transmission_id',
+                'lib_fuel_type_id',
+                'displacement',
+                'year_model',
+                'user_id',
+            ])
+            ->with([
+                'images' => fn ($q) => $q
+                    ->select(['id', 'vehicle_id', 'image_path', 'is_primary'])
+                    ->orderByDesc('is_primary')
+                    ->orderBy('id'),
+                'libBrand:id,name',
+                'libType:id,name',
+                'libTransmission:id,name',
+                'libFuelType:id,name',
+                'libAvailabilityStatus:id,name',
+            ]);
         $allowedStatusIds = LibAvailabilityStatus::whereIn(DB::raw('LOWER(name)'), ['available', 'pending'])->pluck('id')->all();
         if (count($allowedStatusIds) > 0) {
             $query->whereIn('lib_availability_status_id', $allowedStatusIds);
@@ -83,30 +109,7 @@ class PublicVehicleController extends Controller
             $query->latest();
         }
 
-        $vehicles = $query->paginate(12)->withQueryString();
-
-        $ownerIds = $vehicles->getCollection()
-            ->map(fn ($v) => (int) ($v->user_id ?? 0))
-            ->filter(fn ($id) => $id > 0)
-            ->unique()
-            ->values()
-            ->all();
-
-        $ownerRatings = [];
-        if (count($ownerIds) > 0) {
-            $rows = Review::query()
-                ->selectRaw('owner_id, AVG(rating) as avg_rating, COUNT(*) as total_reviews')
-                ->whereIn('owner_id', $ownerIds)
-                ->groupBy('owner_id')
-                ->get();
-
-            foreach ($rows as $r) {
-                $ownerRatings[(int) $r->owner_id] = [
-                    'avg' => $r->avg_rating ? round((float) $r->avg_rating, 2) : 0,
-                    'count' => (int) $r->total_reviews,
-                ];
-            }
-        }
+        $vehicles = $query->paginate(12)->withQueryString()->fragment('fleet');
         
         $brands = LibBrand::orderBy('name')->get();
         $types = LibType::orderBy('name')->get();
@@ -115,13 +118,13 @@ class PublicVehicleController extends Controller
         $statuses = LibAvailabilityStatus::whereIn(DB::raw('LOWER(name)'), ['available', 'pending'])->orderBy('name')->get();
 
         if ($request->ajax() || $request->boolean('ajax')) {
-            return view('partials.public_vehicle_grid', compact('vehicles', 'ownerRatings'));
+            return view('partials.public_vehicle_grid', compact('vehicles'));
         }
 
         $faqs = Schema::hasTable('faqs')
             ? Faq::query()->where('is_active', true)->orderBy('sort_order')->orderBy('id')->get()
             : collect();
 
-        return view('welcome', compact('vehicles', 'brands', 'types', 'transmissions', 'fuels', 'statuses', 'ownerRatings', 'faqs'));
+        return view('welcome', compact('vehicles', 'brands', 'types', 'transmissions', 'fuels', 'statuses', 'faqs'));
     }
 }

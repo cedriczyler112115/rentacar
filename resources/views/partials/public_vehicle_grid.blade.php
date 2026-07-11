@@ -1,3 +1,18 @@
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px;">
+    <div style="font-weight: 800; color: #0f172a;">
+        @if($vehicles->total() > 0)
+            Showing {{ $vehicles->firstItem() }}-{{ $vehicles->lastItem() }} of {{ $vehicles->total() }} available vehicles
+        @else
+            No available vehicles found
+        @endif
+    </div>
+    @if($vehicles->hasPages())
+        <div style="font-size: 0.9rem; color: #64748b; font-weight: 700;">
+            Page {{ $vehicles->currentPage() }} of {{ $vehicles->lastPage() }}
+        </div>
+    @endif
+</div>
+
 <div class="vehicle-grid">
     @forelse($vehicles as $vehicle)
         <div class="vehicle-card">
@@ -128,7 +143,7 @@
 </div>
 
 @if($vehicles->hasPages())
-    <div style="margin-top: 20px;">
+    <div class="fleet-pagination" style="margin-top: 24px;">
         {{ $vehicles->links() }}
     </div>
 @endif
