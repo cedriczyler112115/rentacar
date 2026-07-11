@@ -20,7 +20,10 @@
             }
         </style>
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>Browse Vehicles</h2>
+            <div>
+                <h2>Browse Vehicles</h2>
+                <p style="color: #64748b; margin-top: 5px;">Explore available vehicles, compare options, and find the right ride for your trip.</p>
+            </div>
         </div>
     </x-slot>
 

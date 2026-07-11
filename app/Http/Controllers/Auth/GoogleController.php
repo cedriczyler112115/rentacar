@@ -30,7 +30,9 @@ class GoogleController extends Controller
 
             Auth::login($user);
 
-            return redirect()->intended(route('dashboard', absolute: false));
+            $defaultRoute = $user->is_aaracc ? 'bookings.manage' : 'dashboard';
+
+            return redirect()->intended(route($defaultRoute, absolute: false));
         } catch (\Exception $e) {
             return redirect()->route('login')->withErrors(['email' => 'Failed to securely authenticate with Google. Please try again.']);
         }

@@ -698,6 +698,21 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const ensureActiveFilterVisibility = () => {
+                const activeFilter = document.querySelector('.filter-container .filter-btn.active');
+                if (!activeFilter) return;
+                activeFilter.setAttribute('aria-current', 'page');
+                activeFilter.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            };
+
+            ensureActiveFilterVisibility();
+
+            document.querySelectorAll('.filter-container .filter-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                });
+            });
+
             if (window.$ && $.confirm) {
                 $.confirm.defaults = $.extend({}, $.confirm.defaults, {
                     useBootstrap: false,

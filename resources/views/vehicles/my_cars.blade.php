@@ -20,7 +20,10 @@
             }
         </style>
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>My Vehicles</h2>
+            <div>
+                <h2>My Vehicles</h2>
+                <p style="color: #64748b; margin-top: 5px;">Manage your listed vehicles, update details, and track their availability.</p>
+            </div>
             <button onclick="document.getElementById('addVehicleModal').style.display='flex'" class="btn btn-primary">
                 + Add Vehicle
             </button>

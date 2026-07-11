@@ -1,19 +1,22 @@
 <x-member-layout>
     <x-slot name="header">
+        @php $isAaraccUser = (bool) (Auth::user()?->is_aaracc); @endphp
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h2>{{ __('My Bookings') }}</h2>
                 <p style="color: #64748b; margin-top: 5px;">View, track, and manage all your car rental reservations in one place.</p>
             </div>
-            <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-                <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
-                {{ __('Owner Rating') }}:
-                @if(($myOwnerRatingCount ?? 0) > 0)
-                    ★ {{ number_format((float)($myOwnerRatingAvg ?? 0), 1) }} ({{ (int)$myOwnerRatingCount }})
-                @else
-                    No reviews yet
-                @endif
-            </div>
+            @if($isAaraccUser)
+                <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
+                    {{ __('Owner Rating') }}:
+                    @if(($myOwnerRatingCount ?? 0) > 0)
+                        ★ {{ number_format((float)($myOwnerRatingAvg ?? 0), 1) }} ({{ (int)$myOwnerRatingCount }})
+                    @else
+                        No reviews yet
+                    @endif
+                </div>
+            @endif
         </div>
     </x-slot>
 
@@ -69,7 +72,7 @@
                                     $ownerId = (int) ($booking->vehicle->user_id ?? 0);
                                     $ownerRating = $ownerId > 0 ? ($ownerRatings[$ownerId] ?? null) : null;
                                 @endphp
-                                @if($booking->status === 'Completed' && $ownerRating && (int)($ownerRating['count'] ?? 0) > 0)
+                                @if($isAaraccUser && $booking->status === 'Completed' && $ownerRating && (int)($ownerRating['count'] ?? 0) > 0)
                                     <span class="owner-rating-pill" title="Owner rating based on reviews">
                                         Owner Rating ★ {{ number_format((float)($ownerRating['avg'] ?? 0), 1) }} ({{ (int)($ownerRating['count'] ?? 0) }} reviews)
                                     </span>
@@ -221,7 +224,7 @@
                                                 <div class="review-comment">{{ $booking->review->comment }}</div>
                                             </div>
                                         @else
-                                            <form class="review-form" data-rental-id="{{ $booking->id }}" data-owner-id="{{ (int)($booking->vehicle->user_id ?? 0) }}">
+                                            <form class="review-form" data-no-loader data-rental-id="{{ $booking->id }}" data-owner-id="{{ (int)($booking->vehicle->user_id ?? 0) }}">
                                                 @csrf
                                                 <input type="hidden" name="rental_id" value="{{ $booking->id }}">
                                                 <input type="hidden" name="rating" value="">
@@ -758,12 +761,28 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const canShowOwnerRating = @json($isAaraccUser);
             const modal = document.getElementById('docModal');
             const backdrop = modal ? modal.querySelector('.doc-backdrop') : null;
             const closeBtn = modal ? modal.querySelector('.doc-close') : null;
             const frameEl = document.getElementById('docFrame');
             const imgEl = document.getElementById('docImage');
             const titleEl = document.getElementById('docModalTitle');
+
+            const ensureActiveFilterVisibility = () => {
+                const activeFilter = document.querySelector('.filter-container .filter-btn.active');
+                if (!activeFilter) return;
+                activeFilter.setAttribute('aria-current', 'page');
+                activeFilter.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            };
+
+            ensureActiveFilterVisibility();
+
+            document.querySelectorAll('.filter-container .filter-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                });
+            });
 
             const close = () => {
                 if (!modal) return;
@@ -970,6 +989,10 @@
                     submitBtn.textContent = 'Submitting...';
                 }
 
+                if (window.AARLoading && typeof window.AARLoading.show === 'function') {
+                    window.AARLoading.show('Saving your review…', 'Submitting your rating and feedback…', { maxMs: 30000 });
+                }
+
                 try {
                     const res = await fetch('{{ route('reviews.store') }}', {
                         method: 'POST',
@@ -977,6 +1000,7 @@
                             'Accept': 'application/json',
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                            'X-AAR-No-Loader': '1',
                         },
                         body: JSON.stringify({
                             rental_id: rentalId,
@@ -999,7 +1023,7 @@
                         }
                     }
 
-                    if (ownerId > 0 && payload?.owner) {
+                    if (canShowOwnerRating && ownerId > 0 && payload?.owner) {
                         const badge = document.querySelector('#reviewBox-' + rentalId)?.closest('.booking-card')?.querySelector('.owner-rating-pill');
                         const avg = Number(payload.owner.avg_rating || 0);
                         const cnt = Number(payload.owner.total_reviews || 0);
@@ -1028,6 +1052,9 @@
                         msg.textContent = err?.message || 'Unable to submit review.';
                     }
                 } finally {
+                    if (window.AARLoading && typeof window.AARLoading.hide === 'function') {
+                        window.AARLoading.hide();
+                    }
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Submit Review';

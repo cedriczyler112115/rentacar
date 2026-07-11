@@ -38,6 +38,6 @@ class OTPController extends Controller
         Auth::login($user);
         $request->session()->forget('auth.registration_user_id');
 
-        return redirect()->route('dashboard');
+        return redirect()->route($user->is_aaracc ? 'bookings.manage' : 'dashboard');
     }
 }
