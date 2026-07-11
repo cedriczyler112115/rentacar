@@ -283,41 +283,6 @@
                     </div>
                 </div>
 
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500;">Booked Dates</label>
-                    <input type="hidden" name="booked_dates" id="add_booked_dates" value="[]">
-                    <div style="display:flex; flex-direction:column; gap:12px;">
-                        <div style="width: 100%;">
-                            <div style="font-size: 0.85rem; color:#64748b; font-weight:600; margin-bottom:6px;">Single Date</div>
-                            <div style="display:flex; gap:10px; align-items:center; width: 100%;">
-                                <input type="date" id="add_single_date" style="flex: 1; width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                                <button type="button" class="btn btn-outline" id="add_add_single_btn" style="padding: 10px 14px; display:inline-flex; align-items:center; gap:8px; white-space: nowrap;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                                    Add Date
-                                </button>
-                            </div>
-                        </div>
-                        
-                            
-                        
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
-                            <div style="flex: 1; min-width: 180px;">
-                                <div style="font-size: 0.85rem; color:#64748b; font-weight:600; margin-bottom:6px;">Range Start</div>
-                                <input type="date" id="add_range_start" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <div style="flex: 1; min-width: 180px;">
-                                <div style="font-size: 0.85rem; color:#64748b; font-weight:600; margin-bottom:6px;">Range End</div>
-                                <input type="date" id="add_range_end" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            </div>
-                            <button type="button" class="btn btn-outline" id="add_add_range_btn" style="padding: 10px 14px; display:inline-flex; align-items:center; gap:8px; white-space: nowrap;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><path d="M8 12h8"/></svg>
-                                Add Range
-                            </button>
-                        </div>
-                    </div>
-                    <div id="add_booked_dates_list" style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;"></div>
-                </div>
-
                 <div style="margin-bottom: 0px;">
                     <label style="display: block; margin-bottom: 5px; font-weight: 500;">Images (Max: 6)</label>
                     <input type="file" id="add_images" name="images[]" accept="image/*" multiple style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: white;" onchange="previewUploads(this, 'addUploadPreview')">
@@ -858,29 +823,10 @@ By checking the box, you confirm that you have read and agree to these Terms & P
 
         document.addEventListener('DOMContentLoaded', () => {
             const today = localTodayStr();
-            ['add_single_date', 'add_range_start', 'add_range_end', 'edit_single_date', 'edit_range_start', 'edit_range_end'].forEach((id) => {
+            ['edit_single_date', 'edit_range_start', 'edit_range_end'].forEach((id) => {
                 const el = document.getElementById(id);
                 if (el) el.min = today;
             });
-
-            const addSingleBtn = document.getElementById('add_add_single_btn');
-            const addRangeBtn = document.getElementById('add_add_range_btn');
-            if (addSingleBtn) {
-                addSingleBtn.addEventListener('click', () => {
-                    const el = document.getElementById('add_single_date');
-                    addSingleDate('add', el ? el.value : '');
-                    if (el) el.value = '';
-                });
-            }
-            if (addRangeBtn) {
-                addRangeBtn.addEventListener('click', () => {
-                    const startEl = document.getElementById('add_range_start');
-                    const endEl = document.getElementById('add_range_end');
-                    addDateRange('add', startEl ? startEl.value : '', endEl ? endEl.value : '');
-                    if (startEl) startEl.value = '';
-                    if (endEl) endEl.value = '';
-                });
-            }
 
             const editSingleBtn = document.getElementById('edit_add_single_btn');
             const editRangeBtn = document.getElementById('edit_add_range_btn');
@@ -901,7 +847,6 @@ By checking the box, you confirm that you have read and agree to these Terms & P
                 });
             }
 
-            setBookedDates('add', []);
             setBookedDates('edit', []);
 
             const addTerms = document.getElementById('add_agree_vehicle_terms');
