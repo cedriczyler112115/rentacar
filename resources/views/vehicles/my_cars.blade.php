@@ -194,6 +194,7 @@
             
             <form action="{{ route('my-cars.store') }}" method="POST" enctype="multipart/form-data" style="padding: 20px;">
                 @csrf
+                <input type="hidden" name="booked_dates" value="[]">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                     <div>
                         <label style="display: block; margin-bottom: 5px; font-weight: 500;">Name</label>
