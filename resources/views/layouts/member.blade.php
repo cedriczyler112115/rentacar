@@ -345,6 +345,7 @@
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
                             </button>
                             <div class="nav-dropdown-menu" role="menu" aria-labelledby="bookingsNavTrigger">
+                                <a role="menuitem" href="{{ route('dashboard') }}" class="nav-dropdown-item">My Bookings</a>
                                 <a role="menuitem" href="{{ route('my-income') }}" class="nav-dropdown-item">My Income</a>
                                 <a role="menuitem" href="{{ route('booking.calendar') }}" class="nav-dropdown-item">My Booking Calendar</a>
                                 <a role="menuitem" href="{{ route('bookings.manage') }}" class="nav-dropdown-item">My Client Bookings</a>

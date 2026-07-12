@@ -41,10 +41,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = $request->user();
-        $defaultRoute = $user && $user->is_aaracc ? 'bookings.manage' : 'dashboard';
-
-        return redirect()->intended(route($defaultRoute, absolute: false));
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**
